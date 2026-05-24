@@ -474,15 +474,19 @@ namespace AK
         request.oldValue = property->value;
         request.newValue = std::move(value);
         request.status = EditorPropertyChangeStatus::Accepted;
-        request.requiresSceneDirty = ValuesDiffer(request.oldValue, request.newValue) && HasFlag(property->flags, EditorPropertyFlag::Serialized);
-        request.requiresProxyRebuild = HasFlag(property->flags, EditorPropertyFlag::RequiresRebuild);
+        const bool valueChanged = ValuesDiffer(request.oldValue, request.newValue);
+        request.requiresSceneDirty = valueChanged && HasFlag(property->flags, EditorPropertyFlag::Serialized);
+        request.requiresProxyRebuild = valueChanged && HasFlag(property->flags, EditorPropertyFlag::RequiresRebuild);
         request.undoable = request.requiresSceneDirty;
         request.revision = ++context.revision;
 
         property->value = request.newValue;
-        property->flags = property->flags | EditorPropertyFlag::Dirty;
-        ++context.panels.revision;
-        RebuildPanelSearch(context);
+        if (valueChanged)
+        {
+            property->flags = property->flags | EditorPropertyFlag::Dirty;
+            ++context.panels.revision;
+            RebuildPanelSearch(context);
+        }
 
         context.propertyEdit.editing = false;
         ++context.propertyEdit.revision;
