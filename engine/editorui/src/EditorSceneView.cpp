@@ -461,6 +461,12 @@ namespace AK
     {
         bool changed = false;
 
+        if (camera.mode != EditorSceneViewMode::Mode2D && camera.mode != EditorSceneViewMode::Mode3D)
+        {
+            camera.mode = EditorSceneViewMode::Mode2D;
+            changed = true;
+        }
+
         const EditorSceneViewProjection expectedProjection = camera.mode == EditorSceneViewMode::Mode3D
             ? EditorSceneViewProjection::Perspective
             : EditorSceneViewProjection::Orthographic;
