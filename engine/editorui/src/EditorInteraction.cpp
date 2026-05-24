@@ -43,9 +43,21 @@ namespace AK
 
         const EditorAssetItem* FindAsset(const EditorAssetBrowserModel& model, const std::string& stableId)
         {
+            std::string normalizedId;
+            const std::string* assetId = &stableId;
+            if (stableId.rfind("asset:", 0) == 0)
+            {
+                normalizedId = stableId.substr(6);
+                assetId = &normalizedId;
+            }
+            if (assetId->empty())
+            {
+                return nullptr;
+            }
+
             for (const EditorAssetItem& item : model.items)
             {
-                if (item.guid == stableId || std::string("asset:") + item.guid == stableId)
+                if (!item.guid.empty() && item.guid == *assetId)
                 {
                     return &item;
                 }
