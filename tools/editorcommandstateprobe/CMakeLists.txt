@@ -1,0 +1,3 @@
+add_executable(ak_editorcommandstateprobe main.cpp)
+target_link_libraries(ak_editorcommandstateprobe PRIVATE AK::EditorUI)
+set_target_properties(ak_editorcommandstateprobe PROPERTIES FOLDER "Tools")

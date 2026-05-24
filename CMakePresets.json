@@ -1,0 +1,46 @@
+{
+  "version": 5,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 25,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "windows-vs-debug",
+      "displayName": "Windows VS 2022 Debug",
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64",
+      "binaryDir": "${sourceDir}/build/windows-vs-debug",
+      "cacheVariables": {
+        "CMAKE_CONFIGURATION_TYPES": "Debug;Release",
+        "AK_BUILD_EDITOR": "ON",
+        "AK_BUILD_PLAYER": "ON",
+        "AK_BUILD_TOOLS": "ON"
+      }
+    },
+    {
+      "name": "windows-ninja-debug",
+      "displayName": "Windows MSVC Ninja Debug",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/windows-ninja-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "AK_BUILD_EDITOR": "ON",
+        "AK_BUILD_PLAYER": "ON",
+        "AK_BUILD_TOOLS": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "windows-vs-debug",
+      "configurePreset": "windows-vs-debug",
+      "configuration": "Debug"
+    },
+    {
+      "name": "windows-ninja-debug",
+      "configurePreset": "windows-ninja-debug"
+    }
+  ]
+}

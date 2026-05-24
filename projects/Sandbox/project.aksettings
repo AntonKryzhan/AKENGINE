@@ -1,0 +1,24 @@
+AKSETTINGS 1
+schemaVersion=1
+projectName=AK Sandbox
+buildProfile=Development
+distanceUnit=Meter
+angleUnit=RadianInternalDegreeUI
+massUnit=Kilogram
+timeUnit=Second
+metersPerUnit=1
+secondsPerUnit=1
+kilogramsPerUnit=1
+handedness=RightHanded
+upAxis=YUp
+matrixConvention=ColumnMajor
+clipSpace=VulkanZeroToOne
+frontFace=CounterClockwise
+cameraRelativeRendering=true
+reversedZ=true
+fixedDeltaSeconds=0.016666666666666666
+maxFrameDeltaSeconds=0.25
+maxFixedStepsPerFrame=8
+maxFramesInFlight=2
+maxStreamingBytesPerUpdate=8388608
+maxResidentStreamingBytes=268435456
