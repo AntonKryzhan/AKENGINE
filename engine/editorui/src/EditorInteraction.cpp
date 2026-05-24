@@ -372,6 +372,10 @@ namespace AK
             next += count;
         }
         next %= count;
+        if (context.palette.selectedIndex == static_cast<std::size_t>(next))
+        {
+            return false;
+        }
         context.palette.selectedIndex = static_cast<std::size_t>(next);
         ++context.palette.revision;
         ++context.revision;
