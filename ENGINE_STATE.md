@@ -1,6 +1,6 @@
 # AK Engine State
 
-Last updated by Codex patch: post-v10.8 architecture/state sync after latest five one-file editorui scroll/overlay/asset-selection hardening commits.
+Last updated by Codex patch: post-v10.8 architecture/state sync after latest five one-file editorui interaction/scroll hardening commits.
 
 ## Current repository baseline
 
@@ -11,7 +11,7 @@ Last updated by Codex patch: post-v10.8 architecture/state sync after latest fiv
 - Alternate local generator: Ninja with MSVC environment
 - Language target: C++20/23 style, current CMake requires `cxx_std_20`
 - Current project version in `CMakeLists.txt`: `10.8.0`
-- Latest functional patch present in this archive: post-v10.8 one-file editorui Scene View, Asset Browser interaction, and scroll clipping/range overflow hardening patches after `v10.8 - Inspector Component Editing Expansion`
+- Latest functional patch present in this archive: post-v10.8 one-file editorui interaction and scroll clipping hardening patches after `v10.8 - Inspector Component Editing Expansion`
 
 ## Primary build commands
 
@@ -102,7 +102,7 @@ Recently completed editor runtime layers:
 - v10.6 Scene View camera navigation and picking hardening.
 - v10.7 Scene View overlay and orientation widget runtime foundation.
 - v10.8 Inspector component editing expansion.
-- Post-v10.8 one-file hardening: Inspector property editing validation/live-preview/cancel correctness, Scene View camera/navigation/ray/overlay bounds and viewport guards, Asset Browser selection ID normalization, and editor scroll clipping/range overflow robustness.
+- Post-v10.8 one-file hardening: Inspector property editing validation/live-preview/cancel correctness, command-palette property edit rejection handling, Asset Browser selection/inspector synchronization, and editor scroll clipping/range/thumb/wheel overflow robustness.
 
 Current Scene View behavior direction:
 
@@ -123,7 +123,10 @@ Current Inspector runtime direction:
 - Recent Scene View focus/frame hardening now rejects non-finite and out-of-camera-range bounds/focus coordinates instead of accepting every finite value.
 - Recent Scene View overlay hardening now uses saturating coordinate offsets for toolbar/orientation controls near extreme viewport coordinates.
 - Recent Asset Browser interaction hardening now normalizes `asset:` stable IDs before lookup and rejects empty asset IDs/empty item GUIDs.
-- Recent editor scroll hardening now increments scroll revision when metrics change even if the clamped offset stays the same, normalizes negative content/viewport metrics before clamping/thumb layout, propagates invalid clip-stack state, and saturates clip rectangle ends, virtual list/grid content pixels, range counts, item visibility math, ceil division, and wheel deltas.
+- Recent Asset Browser selection hardening now refreshes Inspector selection state when an asset is selected.
+- Recent command-palette property edit hardening now reports rejected setting/property edit results instead of marking the model dirty for missing or read-only properties.
+- Recent property commit hardening now avoids dirty flags, proxy rebuild requests, panel revisions, and search rebuilds when a committed value is unchanged.
+- Recent editor scroll hardening now increments scroll revision when metrics change even if the clamped offset stays the same, normalizes negative content/viewport metrics before clamping/thumb layout, propagates invalid clip-stack state, and saturates clip rectangle ends, virtual list/grid content pixels, range counts, item visibility math, ceil division, wheel deltas, and scrollbar thumb coordinates.
 
 ## Current generated/cache state
 
@@ -131,7 +134,7 @@ This archive may contain `.akcache/` and `build/` directories. Treat them as loc
 
 ## Latest patch summary
 
-Patch: `post-v10.8 - architecture/state sync after latest five one-file editorui scroll/overlay/asset-selection hardening commits`.
+Patch: `post-v10.8 - architecture/state sync after latest five one-file editorui interaction/scroll hardening commits`.
 
 Changed files:
 
@@ -142,7 +145,7 @@ ENGINE_STATE.md
 Intent:
 
 ```text
-Synchronize the repository state file with the latest five one-file editorui commits without changing production code, CMake, docs, probes, tests, generated output, or zip artifacts.
+Synchronize the repository state file with the latest five one-file editorui interaction/scroll commits without changing production code, CMake, docs, probes, tests, generated output, or zip artifacts.
 Record the changed subsystems, risks, intentionally skipped docs/probes, and next small patch candidates.
 ```
 
@@ -161,15 +164,14 @@ ENGINE_STATE.md -> read
 QUALITY_GATE.md -> read
 ENGINE_ROADMAP.md, tasks/NEXT_PATCH.md, nearby docs, and CMake context reads -> intentionally skipped by operator constraint: architecture sync only, use git history first, review only last five commits, no docs/CMake work
 git status --short -> clean before patch
-git log --oneline -5 -> reviewed 2f5e7b4, 3242dc6, d1353b1, 85ca850, 4575c01
+git log --oneline -5 -> reviewed 520053a, 9926324, cff6c8e, a0e1aa1, ca8296b
 git show --stat --oneline -5 -> reviewed; all five commits were one-file editorui implementation patches
 git show -5 --format=fuller --name-status -> reviewed; commit subjects were generic `Patch:`
-git show -5 --unified=80 -- engine/editorui/src/EditorScrollClip.cpp engine/editorui/src/EditorInteraction.cpp engine/editorui/src/EditorSceneView.cpp -> reviewed only the affected one-file editorui diffs from git history
-git show --stat --patch --unified=20 85ca850 -- engine/editorui/src/EditorSceneView.cpp -> reviewed
-git show --stat --patch --unified=20 d1353b1 -- engine/editorui/src/EditorScrollClip.cpp -> reviewed
-git show --stat --patch --unified=20 3242dc6 -- engine/editorui/src/EditorInteraction.cpp -> reviewed
-git show --stat --patch --unified=30 4575c01 -- engine/editorui/src/EditorScrollClip.cpp -> reviewed
-git show --stat --patch --unified=30 2f5e7b4 -- engine/editorui/src/EditorScrollClip.cpp -> reviewed
+git show --stat --patch --unified=40 520053a -- engine/editorui/src/EditorInteraction.cpp -> reviewed
+git show --stat --patch --unified=40 9926324 -- engine/editorui/src/EditorScrollClip.cpp -> reviewed
+git show --stat --patch --unified=40 cff6c8e -- engine/editorui/src/EditorScrollClip.cpp -> reviewed
+git show --stat --patch --unified=60 a0e1aa1 -- engine/editorui/src/EditorInteraction.cpp -> reviewed
+git show --stat --patch --unified=60 ca8296b -- engine/editorui/src/EditorInteraction.cpp -> reviewed
 git diff --stat -> ENGINE_STATE.md only, 1 file changed
 git diff --check -> passed; warning only that Git may rewrite ENGINE_STATE.md LF to CRLF on next touch
 cmake configure/build -> intentionally skipped by operator constraint: architecture sync only, edit only ENGINE_STATE.md, no code
@@ -183,10 +185,11 @@ Next recommended step:
 ```text
 Prefer one more narrow editorui verification or behavior patch before a broader feature if verification finds gaps.
 Best one-file candidates:
-1. EditorScrollClip.cpp: add focused regression coverage only if the operator lifts the no-tests/no-probes limit for saturated clip rect ends, invalid clip-stack propagation, virtual range count saturation, and `EnsureEditorItemVisible` viewport-end overflow.
-2. EditorSceneView.cpp: add focused regression coverage only if the operator lifts the no-tests/no-probes limit for overlay control placement/hit-testing near extreme viewport coordinates.
-3. EditorInteraction.cpp: add focused regression coverage only if the operator lifts the no-tests/no-probes limit for Asset Browser selection with raw GUIDs, `asset:`-prefixed stable IDs, empty stable IDs, and empty item GUIDs.
-4. Otherwise continue with v10.9 - Asset Browser thumbnails and import status model, but only as a normal feature patch with docs/probes/CMake policy restored.
+1. EditorInteraction.cpp: verify whether unchanged property commits should still emit a pending change/modelDirty result or whether no-op commits should become fully quiet.
+2. EditorInteraction.cpp: harden command-palette setting search results around stale property paths and read-only properties, keeping rejected edits visible but non-dirty.
+3. EditorInteraction.cpp: extend Asset Browser selection behavior toward asset-aware Inspector details if the current Inspector selection bridge still only reflects scene component state.
+4. EditorScrollClip.cpp: add focused regression coverage only if the operator lifts the no-tests/no-probes limit for saturated wheel deltas and scrollbar thumb coordinates near extreme track positions.
+5. Otherwise continue with v10.9 - Asset Browser thumbnails and import status model, but only as a normal feature patch with docs/probes/CMake policy restored.
 ```
 
 ## Post-v10.8 architecture sync notes
@@ -194,29 +197,28 @@ Best one-file candidates:
 Reviewed commits:
 
 ```text
-2f5e7b4 Patch: Editor item visibility viewport-end saturation
-3242dc6 Patch: Asset Browser selection stable ID normalization
-d1353b1 Patch: Editor virtual list/grid range count and index saturation
-85ca850 Patch: Scene View overlay coordinate saturation
-4575c01 Patch: Editor clip rectangle end saturation and invalid clip-stack propagation
+520053a Patch: Command-palette property edit rejection handling
+9926324 Patch: Editor scrollbar thumb coordinate saturation
+cff6c8e Patch: Editor scroll wheel delta saturation
+a0e1aa1 Patch: Property commit no-op dirty/rebuild suppression
+ca8296b Patch: Asset Browser selection Inspector synchronization
 ```
 
 Changed subsystems:
 
 ```text
-engine/editorui Editor scroll clipping, nested clip-stack invalid state, virtual list/grid range math, and item visibility overflow guards
-engine/editorui Scene View overlay control coordinate placement and orientation-widget hit-test rectangle construction
-engine/editorui Editor interaction Asset Browser item lookup by raw GUID or `asset:`-prefixed stable ID
+engine/editorui Editor interaction property editing from command-palette setting results, property commit mutation flags, and Asset Browser selection propagation into Inspector selection state
+engine/editorui Editor scroll clipping scrollbar thumb positioning and mouse-wheel delta overflow guards
 ```
 
 Architectural risks noticed:
 
 ```text
 The last five patches were implementation-only and one-file, so docs/probe coverage is intentionally skipped in this sync until the operator lifts the no-docs/no-probes/no-tests constraint.
-Editor scroll and clip math now saturates rectangle ends, virtual range counts, range indexes, and item visibility viewport ends; this prevents signed/size overflow but means extreme coordinates or collection sizes collapse to bounded values rather than preserving exact magnitude.
-Invalid nested clip-stack pushes now preserve invalid state until popped; callers that expected a child push to recover clipping from an invalid parent should be checked before changing this behavior again.
-Scene View overlay controls now saturate coordinate additions; this avoids overflow near extreme viewport positions but can pile controls at coordinate limits and should be verified with hit-testing if extreme window coordinates become realistic.
-Asset Browser lookup now rejects empty stable IDs and empty item GUIDs; this is safer for selection identity, but any placeholder asset rows that intentionally used empty GUIDs will no longer be selectable through this path.
+Command-palette property edits now only mark the model dirty when the edit actually begins; stale or read-only property search results are visible rejections rather than dirtying UI state.
+No-op property commits now suppress serialized dirty flags, proxy rebuild requests, panel revision increments, and search rebuilds; consumers that used pending property-change records as mutation evidence should inspect the change flags rather than assuming every accepted commit mutated state.
+Asset selection now updates Inspector selection state; this closes a stale-selection gap but should be checked against any future asset-detail Inspector model so asset and scene-entity selection contracts do not diverge.
+Scroll wheel deltas and scrollbar thumb coordinates now saturate to i32 bounds; this prevents overflow but means extreme inputs collapse to bounded positions rather than preserving mathematical magnitude.
 Docs, probes, tests, production code, CMake, and zip artifacts are intentionally skipped by operator instruction for this architecture sync.
 ```
 
