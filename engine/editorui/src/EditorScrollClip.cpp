@@ -69,6 +69,24 @@ namespace AK
             const std::size_t maxValue = std::numeric_limits<std::size_t>::max();
             return b != 0 && a > maxValue / b ? maxValue : a * b;
         }
+
+        i32 SaturatingWheelDeltaPixels(long long steps, i32 linesPerStep, i32 lineStepPixels)
+        {
+            const long double delta = -static_cast<long double>(steps)
+                * static_cast<long double>(std::max<i32>(1, linesPerStep))
+                * static_cast<long double>(std::max<i32>(1, lineStepPixels));
+            const long double minValue = static_cast<long double>(std::numeric_limits<i32>::min());
+            const long double maxValue = static_cast<long double>(std::numeric_limits<i32>::max());
+            if (delta <= minValue)
+            {
+                return std::numeric_limits<i32>::min();
+            }
+            if (delta >= maxValue)
+            {
+                return std::numeric_limits<i32>::max();
+            }
+            return static_cast<i32>(delta);
+        }
     }
 
     const char* ToString(EditorScrollPanelKind kind)
@@ -225,7 +243,7 @@ namespace AK
             return false;
         }
         const long long steps = wheelDeltaPerStep != 0 ? static_cast<long long>(std::round(static_cast<double>(wheelDelta) / static_cast<double>(wheelDeltaPerStep))) : static_cast<long long>(wheelDelta);
-        const long long deltaPixels = -steps * static_cast<long long>(std::max<i32>(1, linesPerStep)) * static_cast<long long>(std::max<i32>(1, state.lineStepPixels));
+        const i32 deltaPixels = SaturatingWheelDeltaPixels(steps, linesPerStep, state.lineStepPixels);
         const i32 oldOffset = state.offsetPixels;
         state.offsetPixels = ClampEditorScrollOffset(SaturatingI32(static_cast<long long>(state.offsetPixels) + deltaPixels), state.contentPixels, state.viewportPixels);
         if (oldOffset != state.offsetPixels)
