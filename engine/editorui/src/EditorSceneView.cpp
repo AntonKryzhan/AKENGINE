@@ -166,6 +166,18 @@ namespace AK
             return std::fabs(value - expected) <= tolerance;
         }
 
+        bool CameraNavigationPoseChanged(const EditorSceneViewCamera& camera, const EditorSceneViewCamera& previous)
+        {
+            return !Nearly(camera.centerX, previous.centerX, Epsilon)
+                || !Nearly(camera.focusY, previous.focusY, Epsilon)
+                || !Nearly(camera.centerZ, previous.centerZ, Epsilon)
+                || !Nearly(camera.positionX, previous.positionX, Epsilon)
+                || !Nearly(camera.positionY, previous.positionY, Epsilon)
+                || !Nearly(camera.positionZ, previous.positionZ, Epsilon)
+                || !Nearly(camera.yawDegrees, previous.yawDegrees, Epsilon)
+                || !Nearly(camera.pitchDegrees, previous.pitchDegrees, Epsilon);
+        }
+
         float SanitizeScalar(float value, float fallback, float minValue, float maxValue, bool& changed)
         {
             float result = value;
@@ -766,11 +778,15 @@ namespace AK
             if (input.pan2D && (input.mouseDeltaX != 0 || input.mouseDeltaY != 0) && RectUsable(input.viewport))
             {
                 const float scale = std::clamp(camera.orthographicScale, MinOrthoScale, MaxOrthoScale);
+                const EditorSceneViewCamera previousCamera = camera;
                 camera.centerX = ClampCameraCoordinate(camera.centerX - static_cast<float>(input.mouseDeltaX) / scale, camera.centerX);
                 camera.centerZ = ClampCameraCoordinate(camera.centerZ + static_cast<float>(input.mouseDeltaY) / scale, camera.centerZ);
-                ++camera.revision;
-                result.changed = true;
-                result.status = FormatCameraStatus(camera, "Scene view panning");
+                if (CameraNavigationPoseChanged(camera, previousCamera))
+                {
+                    ++camera.revision;
+                    result.changed = true;
+                    result.status = FormatCameraStatus(camera, "Scene view panning");
+                }
             }
             if (input.mouseWheelDelta != 0 && RectUsable(input.viewport))
             {
@@ -805,22 +821,30 @@ namespace AK
             const Vec3f up = UpFromAxes(forward, right);
             const Vec3f offset = Add(Multiply(right, -static_cast<float>(input.mouseDeltaX) * unitsPerPixel),
                                      Multiply(up, static_cast<float>(input.mouseDeltaY) * unitsPerPixel));
+            const EditorSceneViewCamera previousCamera = camera;
             OffsetCameraAndFocus(camera, offset);
-            ++camera.revision;
-            result.changed = true;
-            result.status = FormatCameraStatus(camera, "Scene view panning");
+            if (CameraNavigationPoseChanged(camera, previousCamera))
+            {
+                ++camera.revision;
+                result.changed = true;
+                result.status = FormatCameraStatus(camera, "Scene view panning");
+            }
         }
 
         if (input.orbit3D && (input.mouseDeltaX != 0 || input.mouseDeltaY != 0))
         {
             const Vec3f focus = CameraFocusPoint(camera);
             const float distance = CameraDistanceToFocus(camera);
+            const EditorSceneViewCamera previousCamera = camera;
             camera.yawDegrees += static_cast<float>(input.mouseDeltaX) * 0.25f;
             camera.pitchDegrees = std::clamp(camera.pitchDegrees - static_cast<float>(input.mouseDeltaY) * 0.25f, -85.0f, -5.0f);
             PositionCameraAtFocus(camera, focus, distance);
-            ++camera.revision;
-            result.changed = true;
-            result.status = FormatCameraStatus(camera, "Scene view orbit");
+            if (CameraNavigationPoseChanged(camera, previousCamera))
+            {
+                ++camera.revision;
+                result.changed = true;
+                result.status = FormatCameraStatus(camera, "Scene view orbit");
+            }
         }
 
         if (input.mouseWheelDelta != 0 || input.dolly3D)
@@ -833,12 +857,16 @@ namespace AK
             distance = std::clamp(distance, focusDistance - MaxFrameDistance, focusDistance - MinFrameDistance);
             if (std::fabs(distance) > Epsilon)
             {
+                const EditorSceneViewCamera previousCamera = camera;
                 camera.positionX = ClampCameraCoordinate(camera.positionX + forward.x * distance, camera.positionX);
                 camera.positionY = ClampCameraCoordinate(camera.positionY + forward.y * distance, camera.positionY);
                 camera.positionZ = ClampCameraCoordinate(camera.positionZ + forward.z * distance, camera.positionZ);
-                ++camera.revision;
-                result.changed = true;
-                result.status = FormatCameraStatus(camera, "Scene view dolly");
+                if (CameraNavigationPoseChanged(camera, previousCamera))
+                {
+                    ++camera.revision;
+                    result.changed = true;
+                    result.status = FormatCameraStatus(camera, "Scene view dolly");
+                }
             }
         }
 
