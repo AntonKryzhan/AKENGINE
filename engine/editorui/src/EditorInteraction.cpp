@@ -542,6 +542,7 @@ namespace AK
         SetSelection(context.bridge.selection, item);
         SetHierarchySelected(context.panels.hierarchy, stableId);
         context.panels.inspector.selection = CaptureSelection(context.bridge.selection);
+        ++context.panels.inspector.revision;
         request.after = CaptureSelection(context.bridge.selection);
         request.reason = reason;
         request.undoable = !IsSameStableSelection(request.before, request.after);
@@ -573,6 +574,7 @@ namespace AK
         item.displayName = asset->name;
         SetSelection(context.bridge.selection, item);
         context.panels.inspector.selection = CaptureSelection(context.bridge.selection);
+        ++context.panels.inspector.revision;
         request.after = CaptureSelection(context.bridge.selection);
         request.reason = reason;
         request.undoable = !IsSameStableSelection(request.before, request.after);
