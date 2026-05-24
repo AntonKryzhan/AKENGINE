@@ -373,12 +373,16 @@ namespace AK
             return false;
         }
         const i32 count = static_cast<i32>(context.palette.results.size());
-        i32 next = static_cast<i32>(context.palette.selectedIndex) + delta;
-        while (next < 0)
+        const i32 offset = delta % count;
+        i32 next = static_cast<i32>(context.palette.selectedIndex) + offset;
+        if (next < 0)
         {
             next += count;
         }
-        next %= count;
+        else if (next >= count)
+        {
+            next -= count;
+        }
         if (context.palette.selectedIndex == static_cast<std::size_t>(next))
         {
             return false;
