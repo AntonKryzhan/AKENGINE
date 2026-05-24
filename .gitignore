@@ -28,3 +28,4 @@ PATCHES/
 # Temporary files
 *.tmp
 *.log
+third_party/
