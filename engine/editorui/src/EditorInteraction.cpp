@@ -558,6 +558,7 @@ namespace AK
         item.stableId = asset->guid;
         item.displayName = asset->name;
         SetSelection(context.bridge.selection, item);
+        context.panels.inspector.selection = CaptureSelection(context.bridge.selection);
         request.after = CaptureSelection(context.bridge.selection);
         request.reason = reason;
         request.undoable = !IsSameStableSelection(request.before, request.after);
