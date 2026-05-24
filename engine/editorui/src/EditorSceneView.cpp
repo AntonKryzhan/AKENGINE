@@ -651,6 +651,7 @@ namespace AK
         }
         distance = std::clamp(distance, MinFrameDistance, MaxFrameDistance);
 
+        const EditorSceneViewCamera previousCamera = camera;
         camera.mode = EditorSceneViewMode::Mode3D;
         camera.projection = EditorSceneViewProjection::Perspective;
         switch (axis)
@@ -670,7 +671,12 @@ namespace AK
                 break;
         }
         PositionCameraAtFocus(camera, focus, distance);
-        ++camera.revision;
+        if (camera.mode != previousCamera.mode
+            || camera.projection != previousCamera.projection
+            || CameraNavigationPoseChanged(camera, previousCamera))
+        {
+            ++camera.revision;
+        }
     }
 
     EditorSceneViewRay BuildEditorSceneViewRay(const EditorSceneViewCamera& camera, EditorRect viewport, i32 screenX, i32 screenY)
