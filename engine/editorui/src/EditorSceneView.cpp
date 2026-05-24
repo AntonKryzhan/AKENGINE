@@ -25,6 +25,7 @@ namespace AK
         constexpr float MinFrameDistance = 3.0f;
         constexpr float MaxFrameDistance = 10000.0f;
         constexpr float MaxCameraCoordinate = 1000000000.0f;
+        constexpr float MaxWheelSteps = 120.0f;
         constexpr float FramePadding = 1.15f;
         constexpr float Epsilon = 0.00001f;
 
@@ -791,7 +792,7 @@ namespace AK
             if (input.mouseWheelDelta != 0 && RectUsable(input.viewport))
             {
                 const EditorSceneViewGroundPoint before = ScreenToEditorSceneViewGroundPoint(camera, input.viewport, input.mouseX, input.mouseY, 0.0f);
-                const float zoomSteps = static_cast<float>(input.mouseWheelDelta) / 120.0f;
+                const float zoomSteps = std::clamp(static_cast<float>(input.mouseWheelDelta) / 120.0f, -MaxWheelSteps, MaxWheelSteps);
                 const float nextScale = std::clamp(camera.orthographicScale * std::pow(1.12f, zoomSteps), MinOrthoScale, MaxOrthoScale);
                 if (nextScale != camera.orthographicScale)
                 {
@@ -850,7 +851,7 @@ namespace AK
         if (input.mouseWheelDelta != 0 || input.dolly3D)
         {
             const Vec3f forward = ForwardFromAngles(camera.yawDegrees, camera.pitchDegrees);
-            const float wheelSteps = static_cast<float>(input.mouseWheelDelta) / 120.0f;
+            const float wheelSteps = std::clamp(static_cast<float>(input.mouseWheelDelta) / 120.0f, -MaxWheelSteps, MaxWheelSteps);
             const double deltaSeconds = std::isfinite(input.deltaSeconds) ? input.deltaSeconds : 1.0 / 60.0;
             float distance = (input.dolly3D ? 1.0f : wheelSteps) * std::max(0.1f, camera.moveSpeed) * static_cast<float>(std::max(1.0 / 120.0, deltaSeconds * 6.0));
             const float focusDistance = CameraDistanceToFocus(camera);
