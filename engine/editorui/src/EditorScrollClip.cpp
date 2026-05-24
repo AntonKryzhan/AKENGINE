@@ -22,6 +22,17 @@ namespace AK
                                                static_cast<long long>(std::numeric_limits<i32>::max())));
         }
 
+        i32 SaturatingRectSpan(i32 start, i32 end)
+        {
+            const long long span = static_cast<long long>(end) - static_cast<long long>(start);
+            if (span <= 0)
+            {
+                return 0;
+            }
+            const long long maxValue = static_cast<long long>(std::numeric_limits<i32>::max());
+            return span > maxValue ? std::numeric_limits<i32>::max() : static_cast<i32>(span);
+        }
+
         i32 CeilDiv(i32 value, i32 divisor)
         {
             if (value <= 0 || divisor <= 0)
@@ -129,7 +140,7 @@ namespace AK
         {
             return {left, top, 0, 0};
         }
-        return {left, top, right - left, bottom - top};
+        return {left, top, SaturatingRectSpan(left, right), SaturatingRectSpan(top, bottom)};
     }
 
     EditorClipStack MakeEditorClipStack(EditorRect root)
