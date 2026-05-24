@@ -129,6 +129,14 @@ namespace AK
                                                static_cast<long long>(std::numeric_limits<i32>::max())));
         }
 
+        i32 OffsetCoordinate(i32 value, i32 offset)
+        {
+            const long long result = static_cast<long long>(value) + static_cast<long long>(offset);
+            return static_cast<i32>(std::clamp(result,
+                                               static_cast<long long>(std::numeric_limits<i32>::min()),
+                                               static_cast<long long>(std::numeric_limits<i32>::max())));
+        }
+
         bool RectContains(EditorRect rect, i32 x, i32 y)
         {
             return x >= rect.x && y >= rect.y && x < RectRight(rect) && y < RectBottom(rect);
@@ -835,32 +843,32 @@ namespace AK
         SanitizeEditorSceneViewCamera(camera);
 
         surface.visible = true;
-        const i32 x = input.viewport.x + 10;
-        const i32 y = input.viewport.y + 10;
+        const i32 x = OffsetCoordinate(input.viewport.x, 10);
+        const i32 y = OffsetCoordinate(input.viewport.y, 10);
         const i32 rowHeight = 24;
         const i32 gap = 6;
 
         AddOverlayControl(surface, EditorSceneViewOverlayControl::Mode2D, {x, y, 42, rowHeight}, "2D", true, IsOverlayControlActive(EditorSceneViewOverlayControl::Mode2D, input, camera));
-        AddOverlayControl(surface, EditorSceneViewOverlayControl::Mode3D, {x + 42 + gap, y, 42, rowHeight}, "3D", true, IsOverlayControlActive(EditorSceneViewOverlayControl::Mode3D, input, camera));
-        AddOverlayControl(surface, EditorSceneViewOverlayControl::GridSnap, {x + 84 + gap * 2, y, 54, rowHeight}, "Snap", true, IsOverlayControlActive(EditorSceneViewOverlayControl::GridSnap, input, camera));
-        AddOverlayControl(surface, EditorSceneViewOverlayControl::FocusSelection, {x + 138 + gap * 3, y, 58, rowHeight}, "Focus", input.hasSelection, false);
-        AddOverlayControl(surface, EditorSceneViewOverlayControl::FrameAll, {x + 196 + gap * 4, y, 58, rowHeight}, "Frame", true, false);
-        AddOverlayControl(surface, EditorSceneViewOverlayControl::ResetView, {x + 254 + gap * 5, y, 58, rowHeight}, "Reset", true, false);
+        AddOverlayControl(surface, EditorSceneViewOverlayControl::Mode3D, {OffsetCoordinate(x, 42 + gap), y, 42, rowHeight}, "3D", true, IsOverlayControlActive(EditorSceneViewOverlayControl::Mode3D, input, camera));
+        AddOverlayControl(surface, EditorSceneViewOverlayControl::GridSnap, {OffsetCoordinate(x, 84 + gap * 2), y, 54, rowHeight}, "Snap", true, IsOverlayControlActive(EditorSceneViewOverlayControl::GridSnap, input, camera));
+        AddOverlayControl(surface, EditorSceneViewOverlayControl::FocusSelection, {OffsetCoordinate(x, 138 + gap * 3), y, 58, rowHeight}, "Focus", input.hasSelection, false);
+        AddOverlayControl(surface, EditorSceneViewOverlayControl::FrameAll, {OffsetCoordinate(x, 196 + gap * 4), y, 58, rowHeight}, "Frame", true, false);
+        AddOverlayControl(surface, EditorSceneViewOverlayControl::ResetView, {OffsetCoordinate(x, 254 + gap * 5), y, 58, rowHeight}, "Reset", true, false);
 
-        const i32 toolsY = y + rowHeight + gap;
+        const i32 toolsY = OffsetCoordinate(y, rowHeight + gap);
         AddOverlayControl(surface, EditorSceneViewOverlayControl::ToolTranslate, {x, toolsY, 52, rowHeight}, "Move", true, IsOverlayControlActive(EditorSceneViewOverlayControl::ToolTranslate, input, camera));
-        AddOverlayControl(surface, EditorSceneViewOverlayControl::ToolRotate, {x + 52 + gap, toolsY, 44, rowHeight}, "Rot", true, IsOverlayControlActive(EditorSceneViewOverlayControl::ToolRotate, input, camera));
-        AddOverlayControl(surface, EditorSceneViewOverlayControl::ToolScale, {x + 96 + gap * 2, toolsY, 56, rowHeight}, "Scale", true, IsOverlayControlActive(EditorSceneViewOverlayControl::ToolScale, input, camera));
-        AddOverlayControl(surface, EditorSceneViewOverlayControl::SpaceWorld, {x + 152 + gap * 3, toolsY, 62, rowHeight}, "World", true, IsOverlayControlActive(EditorSceneViewOverlayControl::SpaceWorld, input, camera));
-        AddOverlayControl(surface, EditorSceneViewOverlayControl::SpaceLocal, {x + 214 + gap * 4, toolsY, 58, rowHeight}, "Local", true, IsOverlayControlActive(EditorSceneViewOverlayControl::SpaceLocal, input, camera));
+        AddOverlayControl(surface, EditorSceneViewOverlayControl::ToolRotate, {OffsetCoordinate(x, 52 + gap), toolsY, 44, rowHeight}, "Rot", true, IsOverlayControlActive(EditorSceneViewOverlayControl::ToolRotate, input, camera));
+        AddOverlayControl(surface, EditorSceneViewOverlayControl::ToolScale, {OffsetCoordinate(x, 96 + gap * 2), toolsY, 56, rowHeight}, "Scale", true, IsOverlayControlActive(EditorSceneViewOverlayControl::ToolScale, input, camera));
+        AddOverlayControl(surface, EditorSceneViewOverlayControl::SpaceWorld, {OffsetCoordinate(x, 152 + gap * 3), toolsY, 62, rowHeight}, "World", true, IsOverlayControlActive(EditorSceneViewOverlayControl::SpaceWorld, input, camera));
+        AddOverlayControl(surface, EditorSceneViewOverlayControl::SpaceLocal, {OffsetCoordinate(x, 214 + gap * 4), toolsY, 58, rowHeight}, "Local", true, IsOverlayControlActive(EditorSceneViewOverlayControl::SpaceLocal, input, camera));
 
         const i32 orientationSize = 104;
-        const i32 orientationX = std::max(input.viewport.x + 10, RectRight(input.viewport) - orientationSize - 12);
-        const i32 orientationY = input.viewport.y + 10;
+        const i32 orientationX = std::max(OffsetCoordinate(input.viewport.x, 10), OffsetCoordinate(RectRight(input.viewport), -orientationSize - 12));
+        const i32 orientationY = OffsetCoordinate(input.viewport.y, 10);
         surface.orientationRect = {orientationX, orientationY, orientationSize, orientationSize};
-        AddOverlayControl(surface, EditorSceneViewOverlayControl::OrientationAxisX, {orientationX + 72, orientationY + 40, 24, 24}, "X", true, IsOverlayControlActive(EditorSceneViewOverlayControl::OrientationAxisX, input, camera));
-        AddOverlayControl(surface, EditorSceneViewOverlayControl::OrientationAxisY, {orientationX + 40, orientationY + 8, 24, 24}, "Y", true, IsOverlayControlActive(EditorSceneViewOverlayControl::OrientationAxisY, input, camera));
-        AddOverlayControl(surface, EditorSceneViewOverlayControl::OrientationAxisZ, {orientationX + 16, orientationY + 72, 24, 24}, "Z", true, IsOverlayControlActive(EditorSceneViewOverlayControl::OrientationAxisZ, input, camera));
+        AddOverlayControl(surface, EditorSceneViewOverlayControl::OrientationAxisX, {OffsetCoordinate(orientationX, 72), OffsetCoordinate(orientationY, 40), 24, 24}, "X", true, IsOverlayControlActive(EditorSceneViewOverlayControl::OrientationAxisX, input, camera));
+        AddOverlayControl(surface, EditorSceneViewOverlayControl::OrientationAxisY, {OffsetCoordinate(orientationX, 40), OffsetCoordinate(orientationY, 8), 24, 24}, "Y", true, IsOverlayControlActive(EditorSceneViewOverlayControl::OrientationAxisY, input, camera));
+        AddOverlayControl(surface, EditorSceneViewOverlayControl::OrientationAxisZ, {OffsetCoordinate(orientationX, 16), OffsetCoordinate(orientationY, 72), 24, 24}, "Z", true, IsOverlayControlActive(EditorSceneViewOverlayControl::OrientationAxisZ, input, camera));
 
         std::ostringstream out;
         out << "Scene View overlay " << ToString(camera.mode)
