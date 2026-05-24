@@ -316,6 +316,7 @@ namespace AK
         diagnostics.searchRecordCount = frame.searchIndex.records.size();
 
         std::unordered_set<std::string> propertyPaths;
+        bool propertyPathsValid = true;
         for (const EditorComponentInspector& component : frame.inspector.components)
         {
             for (const EditorPropertyDesc& property : component.properties)
@@ -337,7 +338,10 @@ namespace AK
                 {
                     ++diagnostics.steppedPropertyCount;
                 }
-                propertyPaths.insert(property.path);
+                if (property.path.empty() || !propertyPaths.insert(property.path).second)
+                {
+                    propertyPathsValid = false;
+                }
             }
         }
 
@@ -366,7 +370,7 @@ namespace AK
             && diagnostics.assetCount >= 5
             && diagnostics.metricCount >= 4
             && diagnostics.searchRecordCount >= 20
-            && propertyPaths.size() == diagnostics.propertyCount;
+            && propertyPathsValid;
 
         std::ostringstream out;
         out << "panel-model hierarchy=" << diagnostics.hierarchyNodeCount
