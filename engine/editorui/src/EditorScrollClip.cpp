@@ -348,7 +348,7 @@ namespace AK
         }
 
         const i32 trackPixels = axis == EditorScrollAxis::Vertical ? track.height : track.width;
-        const i32 minThumbPixels = 22;
+        const i32 minThumbPixels = std::min<i32>(22, trackPixels);
         const i32 thumbPixels = std::clamp(static_cast<i32>((static_cast<double>(viewportPixels) / static_cast<double>(std::max<i32>(1, contentPixels))) * static_cast<double>(trackPixels)), minThumbPixels, std::max(minThumbPixels, trackPixels));
         const i32 maxOffset = std::max<i32>(1, contentPixels - viewportPixels);
         const i32 travelPixels = std::max<i32>(0, trackPixels - thumbPixels);
