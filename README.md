@@ -1,11 +1,28 @@
 # AK Engine
 
+<p align="center">
+  <img src="AK_Engine_Hero.png" alt="AK Engine cinematic logo showcase" width="100%">
+</p>
+
+<p align="center">
+  <strong>Next-generation game engine research: large worlds, physical simulation, advanced rendering, destruction, streaming, and living surface systems.</strong>
+</p>
+
 **AK Engine** is an experimental Windows-first C++ game engine focused on large worlds, editor tooling, deterministic runtime foundations, modern rendering architecture, physics/destruction research, and scalable engine infrastructure.
 
 The project is not a Unity/Unreal/Godot clone.  
 It is built as a low-level custom engine that borrows proven production ideas from modern engines while keeping the architecture explicit, modular, inspectable, and optimized for long-term control.
 
 AK Engine is currently in active development.
+
+
+## Visual Direction
+
+The images below are concept visuals for the intended long-term direction of AK Engine. They are not presented as current runtime screenshots; they communicate the target look and feature scope the engine architecture is being built toward.
+
+![AK Engine feature showcase](AK_Engine_Showcase.jpg)
+
+AK Engine is being designed to eventually support scenes like these through a combination of large-world coordinates, world partitioning, physically based materials, dynamic weather, volumetric effects, physical water, destruction, mass rendering, virtual texturing, adaptive shadows, and a future Vulkan-first renderer.
 
 ---
 
