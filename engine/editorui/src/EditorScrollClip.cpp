@@ -14,6 +14,14 @@ namespace AK
             return value > 0 ? value : 0;
         }
 
+        i32 SaturatingRectEnd(i32 origin, i32 size)
+        {
+            const long long value = static_cast<long long>(origin) + static_cast<long long>(size);
+            return static_cast<i32>(std::clamp(value,
+                                               static_cast<long long>(std::numeric_limits<i32>::min()),
+                                               static_cast<long long>(std::numeric_limits<i32>::max())));
+        }
+
         i32 CeilDiv(i32 value, i32 divisor)
         {
             if (value <= 0 || divisor <= 0)
@@ -85,8 +93,8 @@ namespace AK
     {
         const i32 left = std::max(a.x, b.x);
         const i32 top = std::max(a.y, b.y);
-        const i32 right = std::min(a.x + a.width, b.x + b.width);
-        const i32 bottom = std::min(a.y + a.height, b.y + b.height);
+        const i32 right = std::min(SaturatingRectEnd(a.x, a.width), SaturatingRectEnd(b.x, b.width));
+        const i32 bottom = std::min(SaturatingRectEnd(a.y, a.height), SaturatingRectEnd(b.y, b.height));
         if (right <= left || bottom <= top)
         {
             return {left, top, 0, 0};
@@ -108,6 +116,17 @@ namespace AK
 
     bool PushEditorClipRect(EditorClipStack& stack, EditorRect rect)
     {
+        if (!stack.stack.empty() && !stack.current.valid)
+        {
+            EditorClipRect next{};
+            next.rect = stack.current.rect;
+            next.valid = false;
+            stack.stack.push_back(next);
+            stack.current = next;
+            stack.clipped = false;
+            return false;
+        }
+
         const EditorRect base = stack.current.valid ? stack.current.rect : rect;
         const EditorRect clipped = stack.current.valid ? IntersectEditorRects(base, rect) : rect;
         EditorClipRect next{};
