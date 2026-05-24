@@ -681,9 +681,9 @@ namespace AK
         if (safeCamera.mode == EditorSceneViewMode::Mode2D || safeCamera.projection == EditorSceneViewProjection::Orthographic)
         {
             const float scale = std::clamp(safeCamera.orthographicScale, MinOrthoScale, MaxOrthoScale);
-            ray.originX = safeCamera.centerX + (static_cast<float>(screenX) - centerX) / scale;
+            ray.originX = ClampCameraCoordinate(safeCamera.centerX + (static_cast<float>(screenX) - centerX) / scale, safeCamera.centerX);
             ray.originY = MaxCameraCoordinate;
-            ray.originZ = safeCamera.centerZ - (static_cast<float>(screenY) - centerY) / scale;
+            ray.originZ = ClampCameraCoordinate(safeCamera.centerZ - (static_cast<float>(screenY) - centerY) / scale, safeCamera.centerZ);
             ray.dirX = 0.0f;
             ray.dirY = -1.0f;
             ray.dirZ = 0.0f;
