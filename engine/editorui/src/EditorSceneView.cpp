@@ -278,12 +278,12 @@ namespace AK
                 return;
             }
 
-            camera.centerX += offset.x;
-            camera.focusY += offset.y;
-            camera.centerZ += offset.z;
-            camera.positionX += offset.x;
-            camera.positionY += offset.y;
-            camera.positionZ += offset.z;
+            camera.centerX = ClampCameraCoordinate(camera.centerX + offset.x, camera.centerX);
+            camera.focusY = ClampCameraCoordinate(camera.focusY + offset.y, camera.focusY);
+            camera.centerZ = ClampCameraCoordinate(camera.centerZ + offset.z, camera.centerZ);
+            camera.positionX = ClampCameraCoordinate(camera.positionX + offset.x, camera.positionX);
+            camera.positionY = ClampCameraCoordinate(camera.positionY + offset.y, camera.positionY);
+            camera.positionZ = ClampCameraCoordinate(camera.positionZ + offset.z, camera.positionZ);
         }
 
         std::string FormatCameraStatus(const EditorSceneViewCamera& camera, const char* prefix)
@@ -766,8 +766,8 @@ namespace AK
             if (input.pan2D && (input.mouseDeltaX != 0 || input.mouseDeltaY != 0) && RectUsable(input.viewport))
             {
                 const float scale = std::clamp(camera.orthographicScale, MinOrthoScale, MaxOrthoScale);
-                camera.centerX -= static_cast<float>(input.mouseDeltaX) / scale;
-                camera.centerZ += static_cast<float>(input.mouseDeltaY) / scale;
+                camera.centerX = ClampCameraCoordinate(camera.centerX - static_cast<float>(input.mouseDeltaX) / scale, camera.centerX);
+                camera.centerZ = ClampCameraCoordinate(camera.centerZ + static_cast<float>(input.mouseDeltaY) / scale, camera.centerZ);
                 ++camera.revision;
                 result.changed = true;
                 result.status = FormatCameraStatus(camera, "Scene view panning");
@@ -783,8 +783,8 @@ namespace AK
                     const EditorSceneViewGroundPoint after = ScreenToEditorSceneViewGroundPoint(camera, input.viewport, input.mouseX, input.mouseY, 0.0f);
                     if (before.valid && after.valid)
                     {
-                        camera.centerX += before.x - after.x;
-                        camera.centerZ += before.z - after.z;
+                        camera.centerX = ClampCameraCoordinate(camera.centerX + before.x - after.x, camera.centerX);
+                        camera.centerZ = ClampCameraCoordinate(camera.centerZ + before.z - after.z, camera.centerZ);
                     }
                     ++camera.revision;
                     result.changed = true;
@@ -833,9 +833,9 @@ namespace AK
             distance = std::clamp(distance, focusDistance - MaxFrameDistance, focusDistance - MinFrameDistance);
             if (std::fabs(distance) > Epsilon)
             {
-                camera.positionX += forward.x * distance;
-                camera.positionY += forward.y * distance;
-                camera.positionZ += forward.z * distance;
+                camera.positionX = ClampCameraCoordinate(camera.positionX + forward.x * distance, camera.positionX);
+                camera.positionY = ClampCameraCoordinate(camera.positionY + forward.y * distance, camera.positionY);
+                camera.positionZ = ClampCameraCoordinate(camera.positionZ + forward.z * distance, camera.positionZ);
                 ++camera.revision;
                 result.changed = true;
                 result.status = FormatCameraStatus(camera, "Scene view dolly");
