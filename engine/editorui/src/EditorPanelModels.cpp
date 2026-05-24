@@ -399,6 +399,10 @@ namespace AK
         }
         for (const EditorAssetItem& asset : frame.assets.items)
         {
+            if (asset.guid.empty())
+            {
+                continue;
+            }
             AddSearchRecord(index, EditorSearchResultKind::Asset, asset.name, std::string(ToString(asset.kind)) + "  " + asset.logicalPath, "asset:" + asset.guid, asset.missing ? 0.35f : 0.8f);
         }
         for (const EditorMetric& metric : frame.diagnostics.metrics)
