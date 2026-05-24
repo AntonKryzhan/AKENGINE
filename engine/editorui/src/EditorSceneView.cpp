@@ -505,6 +505,10 @@ namespace AK
     void SetEditorSceneViewMode(EditorSceneViewCamera& camera, EditorSceneViewMode mode)
     {
         SanitizeEditorSceneViewCamera(camera);
+        if (mode != EditorSceneViewMode::Mode2D && mode != EditorSceneViewMode::Mode3D)
+        {
+            mode = EditorSceneViewMode::Mode2D;
+        }
         if (camera.mode == mode)
         {
             return;
