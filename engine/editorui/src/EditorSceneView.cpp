@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <sstream>
 #include <utility>
 
@@ -114,12 +115,18 @@ namespace AK
 
         i32 RectRight(EditorRect rect)
         {
-            return rect.x + rect.width;
+            const long long value = static_cast<long long>(rect.x) + static_cast<long long>(rect.width);
+            return static_cast<i32>(std::clamp(value,
+                                               static_cast<long long>(std::numeric_limits<i32>::min()),
+                                               static_cast<long long>(std::numeric_limits<i32>::max())));
         }
 
         i32 RectBottom(EditorRect rect)
         {
-            return rect.y + rect.height;
+            const long long value = static_cast<long long>(rect.y) + static_cast<long long>(rect.height);
+            return static_cast<i32>(std::clamp(value,
+                                               static_cast<long long>(std::numeric_limits<i32>::min()),
+                                               static_cast<long long>(std::numeric_limits<i32>::max())));
         }
 
         bool RectContains(EditorRect rect, i32 x, i32 y)
