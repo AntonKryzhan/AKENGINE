@@ -417,9 +417,15 @@ namespace AK
             const std::string prefix = "property:";
             if (selected.stableId.rfind(prefix, 0) == 0)
             {
-                BeginEditorPropertyEdit(context, selected.stableId.substr(prefix.size()));
-                result.modelDirty = true;
-                PushMessage(result, std::string("editing property ") + selected.title);
+                if (BeginEditorPropertyEdit(context, selected.stableId.substr(prefix.size())))
+                {
+                    result.modelDirty = true;
+                    PushMessage(result, std::string("editing property ") + selected.title);
+                }
+                else
+                {
+                    PushMessage(result, std::string("property edit rejected ") + selected.title);
+                }
             }
         }
         return result;
