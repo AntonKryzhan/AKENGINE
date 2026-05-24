@@ -320,21 +320,50 @@ The goal is to make performance and correctness visible early instead of adding 
 ## Comparison With Other Engines
 
 AK Engine is not trying to replace Unity, Unreal Engine, or Godot today.  
-Those engines are mature production ecosystems with years of tooling, rendering, importers, exporters, platforms, plugins, and community support.
+Those engines are mature production ecosystems. This table compares major engine modules at a high level and shows where AK Engine is intentionally investing its architecture.
 
-AK Engine is different because it is being built as a custom, research-heavy, low-level engine with direct control over the architecture.
+Legend:
 
-| Engine | Strengths | AK Engine Difference |
-|---|---|---|
-| Unity | Mature editor, huge ecosystem, fast iteration, C# workflow | AK Engine focuses on custom C++ architecture, large-world foundations, explicit engine internals, and low-level rendering/physics control |
-| Unreal Engine | AAA renderer, Nanite/Lumen, advanced editor, production tools | AK Engine is smaller and experimental, but aims for transparent systems, custom architecture, and research-driven large-world/runtime foundations |
-| Godot | Open-source, lightweight, flexible, fast to modify | AK Engine is lower-level, Windows/Vulkan-first, C++-centric, and focused on custom engine research rather than general-purpose accessibility |
-| Custom in-house engines | Maximum control, project-specific optimization | AK Engine follows this philosophy: controlled architecture, no black-box dependence, explicit systems, engine code built around the project’s long-term goals |
+- ★★★★★ — production-leading / very strong;
+- ★★★★☆ — strong;
+- ★★★☆☆ — solid foundation or moderate coverage;
+- ★★☆☆☆ — early foundation / limited coverage;
+- ★☆☆☆☆ — minimal / not a primary focus yet.
 
-AK Engine’s advantage is not maturity.  
-Its advantage is **control**.
+> AK Engine ratings describe the current custom foundation plus the project direction, not production maturity.
 
-The project is designed so that every major system can be inspected, modified, specialized, optimized, and eventually pushed toward very specific game requirements.
+| Module / System | AK Engine | Unity | Unreal Engine | Godot |
+|---|---:|---:|---:|---:|
+| Editor workflow | ★★☆☆☆ | ★★★★★ | ★★★★★ | ★★★★☆ |
+| Scene hierarchy / Inspector | ★★★☆☆ | ★★★★★ | ★★★★★ | ★★★★☆ |
+| ECS / data-oriented runtime direction | ★★★★☆ | ★★★☆☆ | ★★★☆☆ | ★★☆☆☆ |
+| C++ low-level control | ★★★★★ | ★★☆☆☆ | ★★★★★ | ★★★☆☆ |
+| Large-world coordinates | ★★★★☆ | ★★☆☆☆ | ★★★★★ | ★★☆☆☆ |
+| Planet / spherical world topology | ★★★★☆ | ★★☆☆☆ | ★★★☆☆ | ★★☆☆☆ |
+| Toroidal / wrap-world topology | ★★★★☆ | ★☆☆☆☆ | ★☆☆☆☆ | ★★☆☆☆ |
+| World partition / streaming foundation | ★★★★☆ | ★★★☆☆ | ★★★★★ | ★★☆☆☆ |
+| Asset GUID database / VFS / packages | ★★★★☆ | ★★★★★ | ★★★★★ | ★★★☆☆ |
+| Deterministic tick / runtime invariants | ★★★★☆ | ★★★☆☆ | ★★★☆☆ | ★★★☆☆ |
+| Resource handles / lifetime safety | ★★★★☆ | ★★★★☆ | ★★★★★ | ★★★☆☆ |
+| Job system / memory / diagnostics foundations | ★★★★☆ | ★★★★☆ | ★★★★★ | ★★★☆☆ |
+| Vulkan-first direction | ★★★☆☆ | ★★★☆☆ | ★★★★☆ | ★★★★☆ |
+| RenderGraph / frame graph direction | ★★★☆☆ | ★★★★☆ | ★★★★★ | ★★☆☆☆ |
+| Production renderer today | ★☆☆☆☆ | ★★★★☆ | ★★★★★ | ★★★☆☆ |
+| Virtual texturing direction | ★★★☆☆ | ★★★☆☆ | ★★★★★ | ★★☆☆☆ |
+| Neural texture compression path | ★★★☆☆ | ★☆☆☆☆ | ★★☆☆☆ | ★☆☆☆☆ |
+| Virtualized geometry / Nanite-like path | ★★★☆☆ | ★★☆☆☆ | ★★★★★ | ★☆☆☆☆ |
+| Physics foundation | ★★★☆☆ | ★★★★☆ | ★★★★☆ | ★★★☆☆ |
+| CSG / destruction foundation | ★★★★☆ | ★★☆☆☆ | ★★★★☆ | ★★☆☆☆ |
+| Surface interaction systems direction | ★★★★☆ | ★★☆☆☆ | ★★★☆☆ | ★★☆☆☆ |
+| Water / smoke / weather direction | ★★★☆☆ | ★★★☆☆ | ★★★★☆ | ★★☆☆☆ |
+| Mass rendering / crowds / asteroid fields direction | ★★★★☆ | ★★★☆☆ | ★★★★☆ | ★★☆☆☆ |
+| Open-source accessibility | ★★★★★ | ★☆☆☆☆ | ★★★★★ | ★★★★★ |
+| Ecosystem / plugins / marketplace | ★☆☆☆☆ | ★★★★★ | ★★★★★ | ★★★☆☆ |
+| Production readiness today | ★☆☆☆☆ | ★★★★★ | ★★★★★ | ★★★★☆ |
+| Custom architecture control | ★★★★★ | ★★☆☆☆ | ★★★★☆ | ★★★★☆ |
+
+AK Engine’s current advantage is not ecosystem maturity.  
+Its advantage is **control over architecture**: large-world coordinates, topology policies, explicit resource lifetime, deterministic foundations, streaming contracts, CSG/destruction research, and a rendering path designed from the beginning around Vulkan, RenderGraph, virtualized resources, and future high-scale worlds.
 
 ---
 
