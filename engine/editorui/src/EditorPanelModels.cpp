@@ -403,6 +403,10 @@ namespace AK
             AddSearchRecord(index, EditorSearchResultKind::Setting, component.displayName, "Inspector component", "component:" + component.componentType, 0.72f);
             for (const EditorPropertyDesc& property : component.properties)
             {
+                if (property.path.empty())
+                {
+                    continue;
+                }
                 AddSearchRecord(index, EditorSearchResultKind::Setting, property.label, property.path, "property:" + property.path, HasFlag(property.flags, EditorPropertyFlag::Dirty) ? 0.95f : 0.68f);
             }
         }
