@@ -502,7 +502,12 @@ namespace AK
         camera.positionX = SanitizeScalar(camera.positionX, 0.0f, -MaxCameraCoordinate, MaxCameraCoordinate, changed);
         camera.positionY = SanitizeScalar(camera.positionY, 8.0f, -MaxCameraCoordinate, MaxCameraCoordinate, changed);
         camera.positionZ = SanitizeScalar(camera.positionZ, -10.0f, -MaxCameraCoordinate, MaxCameraCoordinate, changed);
-        camera.yawDegrees = SanitizeScalar(camera.yawDegrees, 0.0f, -3600.0f, 3600.0f, changed);
+        const float normalizedYaw = NormalizeAngleDegrees(camera.yawDegrees);
+        if (!Nearly(camera.yawDegrees, normalizedYaw, Epsilon))
+        {
+            camera.yawDegrees = normalizedYaw;
+            changed = true;
+        }
         camera.pitchDegrees = SanitizeScalar(camera.pitchDegrees, -35.0f, MinPitch, MaxPitch, changed);
         camera.fovYDegrees = SanitizeScalar(camera.fovYDegrees, 60.0f, MinFovY, MaxFovY, changed);
         camera.nearPlane = SanitizeScalar(camera.nearPlane, 0.05f, MinNearPlane, MaxFarPlane - MinFarPlane, changed);
