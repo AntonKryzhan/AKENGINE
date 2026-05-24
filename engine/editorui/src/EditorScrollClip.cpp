@@ -355,11 +355,11 @@ namespace AK
         const i32 thumbOffset = static_cast<i32>((static_cast<double>(ClampEditorScrollOffset(scrollOffsetPixels, contentPixels, viewportPixels)) / static_cast<double>(maxOffset)) * static_cast<double>(travelPixels));
         if (axis == EditorScrollAxis::Vertical)
         {
-            thumb.thumb = {track.x, track.y + thumbOffset, track.width, thumbPixels};
+            thumb.thumb = {track.x, SaturatingI32(static_cast<long long>(track.y) + thumbOffset), track.width, thumbPixels};
         }
         else
         {
-            thumb.thumb = {track.x + thumbOffset, track.y, thumbPixels, track.height};
+            thumb.thumb = {SaturatingI32(static_cast<long long>(track.x) + thumbOffset), track.y, thumbPixels, track.height};
         }
         thumb.valid = IsEditorRectUsable(thumb.thumb);
         return thumb;
