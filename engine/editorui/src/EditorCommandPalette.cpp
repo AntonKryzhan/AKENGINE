@@ -1,6 +1,7 @@
 #include <AK/EditorUI/EditorCommandPalette.hpp>
 
 #include <algorithm>
+#include <limits>
 #include <sstream>
 #include <unordered_set>
 
@@ -11,6 +12,21 @@ namespace AK
         i32 ClampI32(i32 value, i32 minValue, i32 maxValue)
         {
             return std::max<i32>(minValue, std::min<i32>(value, maxValue));
+        }
+
+        i32 SaturatingI32(long long value)
+        {
+            const long long minValue = static_cast<long long>(std::numeric_limits<i32>::min());
+            const long long maxValue = static_cast<long long>(std::numeric_limits<i32>::max());
+            return static_cast<i32>(std::clamp(value, minValue, maxValue));
+        }
+
+        i32 SaturatingPixelProduct(usize count, i32 pixels)
+        {
+            const long long itemPixels = static_cast<long long>(std::max<i32>(1, pixels));
+            const usize clampedCount = std::min<usize>(count, static_cast<usize>(std::numeric_limits<i32>::max()));
+            const long long product = static_cast<long long>(clampedCount) * itemPixels;
+            return product > static_cast<long long>(std::numeric_limits<i32>::max()) ? std::numeric_limits<i32>::max() : static_cast<i32>(product);
         }
 
         i32 ClampScroll(i32 value, i32 contentHeight, i32 viewportHeight)
@@ -137,18 +153,18 @@ namespace AK
                 return;
             }
 
-            const i32 selectedTop = static_cast<i32>(state.selectedIndex) * rowHeight;
-            const i32 selectedBottom = selectedTop + rowHeight;
+            const i32 selectedTop = SaturatingPixelProduct(state.selectedIndex, rowHeight);
+            const i32 selectedBottom = SaturatingI32(static_cast<long long>(selectedTop) + static_cast<long long>(std::max<i32>(1, rowHeight)));
             if (selectedTop < state.scrollOffsetPixels)
             {
                 state.scrollOffsetPixels = selectedTop;
             }
-            else if (selectedBottom > state.scrollOffsetPixels + viewportHeight)
+            else if (selectedBottom > SaturatingI32(static_cast<long long>(state.scrollOffsetPixels) + static_cast<long long>(viewportHeight)))
             {
                 state.scrollOffsetPixels = selectedBottom - viewportHeight;
             }
 
-            state.scrollOffsetPixels = ClampScroll(state.scrollOffsetPixels, static_cast<i32>(rowCount) * rowHeight, viewportHeight);
+            state.scrollOffsetPixels = ClampScroll(state.scrollOffsetPixels, SaturatingPixelProduct(rowCount, rowHeight), viewportHeight);
         }
 
         void SetResultStatus(EditorCommandPaletteResult& result, const EditorCommandPaletteState& state)
@@ -267,7 +283,7 @@ namespace AK
         surface.footerRect = {x + 14, y + height - 28, width - 28, 20};
         surface.listRect = {x + 8, surface.searchBoxRect.y + surface.searchBoxRect.height + 8, width - 16, surface.footerRect.y - (surface.searchBoxRect.y + surface.searchBoxRect.height + 12)};
         surface.visibleRowCount = std::max<i32>(0, surface.listRect.height / surface.rowHeightPixels);
-        surface.totalContentHeightPixels = static_cast<i32>(surface.rows.size()) * surface.rowHeightPixels;
+        surface.totalContentHeightPixels = SaturatingPixelProduct(surface.rows.size(), surface.rowHeightPixels);
         surface.visibleFirstRow = surface.rowHeightPixels > 0 ? std::max<i32>(0, state.scrollOffsetPixels / surface.rowHeightPixels) : 0;
 
         for (usize index = 0; index < surface.rows.size(); ++index)
@@ -385,7 +401,7 @@ namespace AK
                 if (!rows.empty())
                 {
                     const i32 current = static_cast<i32>(std::min<usize>(state.selectedIndex, rows.size() - 1));
-                    const i32 next = ClampI32(current + input.moveDelta, 0, static_cast<i32>(rows.size()) - 1);
+                    const i32 next = ClampI32(SaturatingI32(static_cast<long long>(current) + static_cast<long long>(input.moveDelta)), 0, static_cast<i32>(rows.size()) - 1);
                     if (next != current)
                     {
                         state.selectedIndex = static_cast<usize>(next);
@@ -430,8 +446,9 @@ namespace AK
                 const i32 rowHeight = std::max<i32>(1, input.rowHeightPixels);
                 const i32 visibleHeight = std::max<i32>(rowHeight, input.viewportHeight);
                 const i32 before = state.scrollOffsetPixels;
-                state.scrollOffsetPixels = ClampScroll(state.scrollOffsetPixels - (input.wheelDelta / 120) * rowHeight * 3,
-                                                       static_cast<i32>(rows.size()) * rowHeight,
+                const i32 wheelPixels = SaturatingI32(-static_cast<long long>(input.wheelDelta / 120) * static_cast<long long>(rowHeight) * 3LL);
+                state.scrollOffsetPixels = ClampScroll(SaturatingI32(static_cast<long long>(state.scrollOffsetPixels) + static_cast<long long>(wheelPixels)),
+                                                       SaturatingPixelProduct(rows.size(), rowHeight),
                                                        visibleHeight);
                 result.scrollChanged = before != state.scrollOffsetPixels;
                 result.handled = true;
