@@ -93,22 +93,29 @@ namespace AK
             return nullptr;
         }
 
-        void SetHierarchySelectedRecursive(EditorHierarchyNode& node, const std::string& stableId)
+        bool SetHierarchySelectedRecursive(EditorHierarchyNode& node, const std::string& stableId)
         {
-            node.selected = (node.stableId == stableId);
+            const bool selected = (node.stableId == stableId);
+            bool changed = node.selected != selected;
+            node.selected = selected;
             for (EditorHierarchyNode& child : node.children)
             {
-                SetHierarchySelectedRecursive(child, stableId);
+                changed = SetHierarchySelectedRecursive(child, stableId) || changed;
             }
+            return changed;
         }
 
         void SetHierarchySelected(EditorHierarchyModel& model, const std::string& stableId)
         {
+            bool changed = false;
             for (EditorHierarchyNode& root : model.roots)
             {
-                SetHierarchySelectedRecursive(root, stableId);
+                changed = SetHierarchySelectedRecursive(root, stableId) || changed;
             }
-            ++model.revision;
+            if (changed)
+            {
+                ++model.revision;
+            }
         }
 
         bool IsWritableProperty(const EditorPropertyDesc& property)
@@ -584,11 +591,14 @@ namespace AK
         {
             if (context.panels.assets.items[i].guid == asset->guid)
             {
-                context.panels.assets.selectedIndex = i;
+                if (context.panels.assets.selectedIndex != i)
+                {
+                    context.panels.assets.selectedIndex = i;
+                    ++context.panels.assets.revision;
+                }
                 break;
             }
         }
-        ++context.panels.assets.revision;
 
         context.pendingSelectionChanges.push_back(request);
         result.selectionChanges.push_back(request);
