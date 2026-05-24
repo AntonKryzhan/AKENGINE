@@ -1,6 +1,6 @@
 # AK Engine State
 
-Last updated by Codex patch: post-v10.8 architecture/state sync after latest five one-file editorui overflow/ray hardening commits.
+Last updated by Codex patch: post-v10.8 architecture/state sync after latest five one-file editorui scroll/overlay/asset-selection hardening commits.
 
 ## Current repository baseline
 
@@ -11,7 +11,7 @@ Last updated by Codex patch: post-v10.8 architecture/state sync after latest fiv
 - Alternate local generator: Ninja with MSVC environment
 - Language target: C++20/23 style, current CMake requires `cxx_std_20`
 - Current project version in `CMakeLists.txt`: `10.8.0`
-- Latest functional patch present in this archive: post-v10.8 one-file editorui Scene View ray/focus and scroll clipping overflow hardening patches after `v10.8 - Inspector Component Editing Expansion`
+- Latest functional patch present in this archive: post-v10.8 one-file editorui Scene View, Asset Browser interaction, and scroll clipping/range overflow hardening patches after `v10.8 - Inspector Component Editing Expansion`
 
 ## Primary build commands
 
@@ -102,7 +102,7 @@ Recently completed editor runtime layers:
 - v10.6 Scene View camera navigation and picking hardening.
 - v10.7 Scene View overlay and orientation widget runtime foundation.
 - v10.8 Inspector component editing expansion.
-- Post-v10.8 one-file hardening: Inspector property editing validation/live-preview/cancel correctness, Scene View camera/navigation/ray bounds and viewport guards, and editor scroll clipping/range overflow robustness.
+- Post-v10.8 one-file hardening: Inspector property editing validation/live-preview/cancel correctness, Scene View camera/navigation/ray/overlay bounds and viewport guards, Asset Browser selection ID normalization, and editor scroll clipping/range overflow robustness.
 
 Current Scene View behavior direction:
 
@@ -121,7 +121,9 @@ Current Inspector runtime direction:
 - Recent Scene View camera sanitization now keeps the near plane below the maximum far-plane relationship and preserves equality at the minimum far/near separation.
 - Recent Scene View navigation hardening now suppresses no-op focus/2D zoom change reporting, ignores 2D zoom input when the viewport is unusable, and keeps orthographic ray origins inside the camera coordinate policy.
 - Recent Scene View focus/frame hardening now rejects non-finite and out-of-camera-range bounds/focus coordinates instead of accepting every finite value.
-- Recent editor scroll hardening now increments scroll revision when metrics change even if the clamped offset stays the same, normalizes negative content/viewport metrics before clamping/thumb layout, and saturates virtual list/grid content pixels, item visibility math, ceil division, and wheel deltas.
+- Recent Scene View overlay hardening now uses saturating coordinate offsets for toolbar/orientation controls near extreme viewport coordinates.
+- Recent Asset Browser interaction hardening now normalizes `asset:` stable IDs before lookup and rejects empty asset IDs/empty item GUIDs.
+- Recent editor scroll hardening now increments scroll revision when metrics change even if the clamped offset stays the same, normalizes negative content/viewport metrics before clamping/thumb layout, propagates invalid clip-stack state, and saturates clip rectangle ends, virtual list/grid content pixels, range counts, item visibility math, ceil division, and wheel deltas.
 
 ## Current generated/cache state
 
@@ -129,7 +131,7 @@ This archive may contain `.akcache/` and `build/` directories. Treat them as loc
 
 ## Latest patch summary
 
-Patch: `post-v10.8 - architecture/state sync after latest five one-file editorui overflow/ray hardening commits`.
+Patch: `post-v10.8 - architecture/state sync after latest five one-file editorui scroll/overlay/asset-selection hardening commits`.
 
 Changed files:
 
@@ -140,7 +142,7 @@ ENGINE_STATE.md
 Intent:
 
 ```text
-Synchronize the repository state file with the latest five one-file editorui commits without changing production code, CMake, docs, probes, tests, or generated output.
+Synchronize the repository state file with the latest five one-file editorui commits without changing production code, CMake, docs, probes, tests, generated output, or zip artifacts.
 Record the changed subsystems, risks, intentionally skipped docs/probes, and next small patch candidates.
 ```
 
@@ -159,10 +161,15 @@ ENGINE_STATE.md -> read
 QUALITY_GATE.md -> read
 ENGINE_ROADMAP.md, tasks/NEXT_PATCH.md, nearby docs, and CMake context reads -> intentionally skipped by operator constraint: architecture sync only, use git history first, review only last five commits, no docs/CMake work
 git status --short -> clean before patch
-git log --oneline -5 -> reviewed 0c4a306, f3b5e36, 4aa078f, b136db7, e68adfd
+git log --oneline -5 -> reviewed 2f5e7b4, 3242dc6, d1353b1, 85ca850, 4575c01
 git show --stat --oneline -5 -> reviewed; all five commits were one-file editorui implementation patches
 git show -5 --format=fuller --name-status -> reviewed; commit subjects were generic `Patch:`
-git show -5 --unified=40 -- engine/editorui/src/EditorSceneView.cpp engine/editorui/src/EditorScrollClip.cpp -> reviewed only the affected one-file editorui diffs from git history
+git show -5 --unified=80 -- engine/editorui/src/EditorScrollClip.cpp engine/editorui/src/EditorInteraction.cpp engine/editorui/src/EditorSceneView.cpp -> reviewed only the affected one-file editorui diffs from git history
+git show --stat --patch --unified=20 85ca850 -- engine/editorui/src/EditorSceneView.cpp -> reviewed
+git show --stat --patch --unified=20 d1353b1 -- engine/editorui/src/EditorScrollClip.cpp -> reviewed
+git show --stat --patch --unified=20 3242dc6 -- engine/editorui/src/EditorInteraction.cpp -> reviewed
+git show --stat --patch --unified=30 4575c01 -- engine/editorui/src/EditorScrollClip.cpp -> reviewed
+git show --stat --patch --unified=30 2f5e7b4 -- engine/editorui/src/EditorScrollClip.cpp -> reviewed
 git diff --stat -> ENGINE_STATE.md only, 1 file changed
 git diff --check -> passed; warning only that Git may rewrite ENGINE_STATE.md LF to CRLF on next touch
 cmake configure/build -> intentionally skipped by operator constraint: architecture sync only, edit only ENGINE_STATE.md, no code
@@ -176,9 +183,9 @@ Next recommended step:
 ```text
 Prefer one more narrow editorui verification or behavior patch before a broader feature if verification finds gaps.
 Best one-file candidates:
-1. EditorScrollClip.cpp: add focused regression coverage only if the operator lifts the no-tests/no-probes limit for ceil division overflow, saturated item visibility math, and huge wheel delta clamping.
-2. EditorSceneView.cpp: add focused regression coverage only if the operator lifts the no-tests/no-probes limit for no-op focus revision behavior and orthographic ray/ground intersections.
-3. EditorSceneView.cpp: consider a one-file behavior patch if verification finds mismatched status reporting around unchanged focus operations or 2D ray origins.
+1. EditorScrollClip.cpp: add focused regression coverage only if the operator lifts the no-tests/no-probes limit for saturated clip rect ends, invalid clip-stack propagation, virtual range count saturation, and `EnsureEditorItemVisible` viewport-end overflow.
+2. EditorSceneView.cpp: add focused regression coverage only if the operator lifts the no-tests/no-probes limit for overlay control placement/hit-testing near extreme viewport coordinates.
+3. EditorInteraction.cpp: add focused regression coverage only if the operator lifts the no-tests/no-probes limit for Asset Browser selection with raw GUIDs, `asset:`-prefixed stable IDs, empty stable IDs, and empty item GUIDs.
 4. Otherwise continue with v10.9 - Asset Browser thumbnails and import status model, but only as a normal feature patch with docs/probes/CMake policy restored.
 ```
 
@@ -187,28 +194,29 @@ Best one-file candidates:
 Reviewed commits:
 
 ```text
-0c4a306 Patch: Scene View orthographic ray origin coordinate cap
-f3b5e36 Patch: Editor scroll wheel delta saturation
-4aa078f Patch: Editor item visibility pixel saturation
-b136db7 Patch: Scene View no-op focus revision suppression
-e68adfd Patch: Editor scroll ceil division overflow guard
+2f5e7b4 Patch: Editor item visibility viewport-end saturation
+3242dc6 Patch: Asset Browser selection stable ID normalization
+d1353b1 Patch: Editor virtual list/grid range count and index saturation
+85ca850 Patch: Scene View overlay coordinate saturation
+4575c01 Patch: Editor clip rectangle end saturation and invalid clip-stack propagation
 ```
 
 Changed subsystems:
 
 ```text
-engine/editorui Editor scroll clipping ceil division, item visibility, virtual range, and wheel delta overflow guards
-engine/editorui Scene View focus revision semantics
-engine/editorui Scene View orthographic ray origin and ground-picking coordinate policy
+engine/editorui Editor scroll clipping, nested clip-stack invalid state, virtual list/grid range math, and item visibility overflow guards
+engine/editorui Scene View overlay control coordinate placement and orientation-widget hit-test rectangle construction
+engine/editorui Editor interaction Asset Browser item lookup by raw GUID or `asset:`-prefixed stable ID
 ```
 
 Architectural risks noticed:
 
 ```text
-The last five patches were implementation-only and one-file, so probe/docs coverage is intentionally skipped in this sync until the operator lifts the no-probes/no-docs constraint.
-Editor scroll math now saturates ceil division, item visibility endpoints, and wheel deltas; this prevents signed overflow but means extreme collections or input deltas collapse to bounded `i32` scroll behavior rather than preserving exact magnitude.
-Scene View focus now avoids revision increments for no-op focus requests; observers must not rely on a command call alone as a state-change signal.
-Scene View orthographic rays now originate at `MaxCameraCoordinate`; this keeps 2D picking inside the camera coordinate policy but should be verified against ground-plane intersections and any caller that assumed a far-plane-derived ray origin.
+The last five patches were implementation-only and one-file, so docs/probe coverage is intentionally skipped in this sync until the operator lifts the no-docs/no-probes/no-tests constraint.
+Editor scroll and clip math now saturates rectangle ends, virtual range counts, range indexes, and item visibility viewport ends; this prevents signed/size overflow but means extreme coordinates or collection sizes collapse to bounded values rather than preserving exact magnitude.
+Invalid nested clip-stack pushes now preserve invalid state until popped; callers that expected a child push to recover clipping from an invalid parent should be checked before changing this behavior again.
+Scene View overlay controls now saturate coordinate additions; this avoids overflow near extreme viewport positions but can pile controls at coordinate limits and should be verified with hit-testing if extreme window coordinates become realistic.
+Asset Browser lookup now rejects empty stable IDs and empty item GUIDs; this is safer for selection identity, but any placeholder asset rows that intentionally used empty GUIDs will no longer be selectable through this path.
 Docs, probes, tests, production code, CMake, and zip artifacts are intentionally skipped by operator instruction for this architecture sync.
 ```
 
