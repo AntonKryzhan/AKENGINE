@@ -352,6 +352,9 @@ namespace AK
                 ++diagnostics.missingAssetCount;
             }
         }
+        const bool assetSelectionValid = frame.assets.items.empty()
+            ? frame.assets.selectedIndex == 0u
+            : frame.assets.selectedIndex < frame.assets.items.size();
 
         for (const EditorConsoleEntry& entry : frame.console.entries)
         {
@@ -368,6 +371,7 @@ namespace AK
             && diagnostics.steppedPropertyCount >= 18
             && diagnostics.readOnlyPropertyCount >= 6
             && diagnostics.assetCount >= 5
+            && assetSelectionValid
             && diagnostics.metricCount >= 4
             && diagnostics.searchRecordCount >= 20
             && propertyPathsValid;
@@ -381,6 +385,7 @@ namespace AK
             << " steps=" << diagnostics.steppedPropertyCount
             << " readonly=" << diagnostics.readOnlyPropertyCount
             << " assets=" << diagnostics.assetCount
+            << " assetSelectionValid=" << (assetSelectionValid ? "true" : "false")
             << " missingAssets=" << diagnostics.missingAssetCount
             << " consoleErrors=" << diagnostics.consoleErrorCount
             << " metrics=" << diagnostics.metricCount
