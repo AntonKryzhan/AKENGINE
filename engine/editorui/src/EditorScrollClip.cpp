@@ -57,6 +57,18 @@ namespace AK
             const long long maxValue = static_cast<long long>(std::numeric_limits<i32>::max());
             return static_cast<i32>(std::clamp(value, minValue, maxValue));
         }
+
+        std::size_t SaturatingSizeAdd(std::size_t a, std::size_t b)
+        {
+            const std::size_t maxValue = std::numeric_limits<std::size_t>::max();
+            return a > maxValue - b ? maxValue : a + b;
+        }
+
+        std::size_t SaturatingSizeProduct(std::size_t a, std::size_t b)
+        {
+            const std::size_t maxValue = std::numeric_limits<std::size_t>::max();
+            return b != 0 && a > maxValue / b ? maxValue : a * b;
+        }
     }
 
     const char* ToString(EditorScrollPanelKind kind)
@@ -260,7 +272,7 @@ namespace AK
         range.firstIndex = static_cast<std::size_t>(range.scrollOffsetPixels / range.rowHeight);
         range.firstRowOffsetPixels = -(range.scrollOffsetPixels % range.rowHeight);
         const std::size_t viewportRows = static_cast<std::size_t>(CeilDiv(range.viewportPixels + (range.scrollOffsetPixels % range.rowHeight), range.rowHeight));
-        range.requestedCount = viewportRows + overscanRows;
+        range.requestedCount = SaturatingSizeAdd(viewportRows, overscanRows);
         if (range.firstIndex >= totalCount)
         {
             range.firstIndex = totalCount;
@@ -288,9 +300,9 @@ namespace AK
         range.overflow = range.contentPixels > range.viewportPixels;
         const i32 firstRow = range.scrollOffsetPixels / range.cellHeight;
         range.firstRowOffsetPixels = -(range.scrollOffsetPixels % range.cellHeight);
-        range.firstIndex = static_cast<std::size_t>(std::max<i32>(0, firstRow) * range.columns);
-        const std::size_t visibleRows = static_cast<std::size_t>(CeilDiv(range.viewportPixels + (range.scrollOffsetPixels % range.cellHeight), range.cellHeight)) + overscanRows;
-        range.requestedCount = visibleRows * static_cast<std::size_t>(range.columns);
+        range.firstIndex = SaturatingSizeProduct(static_cast<std::size_t>(std::max<i32>(0, firstRow)), static_cast<std::size_t>(range.columns));
+        const std::size_t visibleRows = SaturatingSizeAdd(static_cast<std::size_t>(CeilDiv(range.viewportPixels + (range.scrollOffsetPixels % range.cellHeight), range.cellHeight)), overscanRows);
+        range.requestedCount = SaturatingSizeProduct(visibleRows, static_cast<std::size_t>(range.columns));
         if (range.firstIndex >= totalCount)
         {
             range.firstIndex = totalCount;
