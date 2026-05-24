@@ -181,6 +181,12 @@ namespace AK
             return result;
         }
 
+        float ClampCameraCoordinate(float value, float fallback)
+        {
+            bool ignored = false;
+            return SanitizeScalar(value, fallback, -MaxCameraCoordinate, MaxCameraCoordinate, ignored);
+        }
+
         bool CameraRayInputsFinite(const EditorSceneViewCamera& camera)
         {
             return IsFinite(camera.centerX)
@@ -257,12 +263,12 @@ namespace AK
         void PositionCameraAtFocus(EditorSceneViewCamera& camera, Vec3f focus, float distance)
         {
             const Vec3f forward = ForwardFromAngles(camera.yawDegrees, camera.pitchDegrees);
-            camera.centerX = focus.x;
-            camera.focusY = focus.y;
-            camera.centerZ = focus.z;
-            camera.positionX = focus.x - forward.x * distance;
-            camera.positionY = focus.y - forward.y * distance;
-            camera.positionZ = focus.z - forward.z * distance;
+            camera.centerX = ClampCameraCoordinate(focus.x, 0.0f);
+            camera.focusY = ClampCameraCoordinate(focus.y, 0.0f);
+            camera.centerZ = ClampCameraCoordinate(focus.z, 0.0f);
+            camera.positionX = ClampCameraCoordinate(focus.x - forward.x * distance, camera.centerX);
+            camera.positionY = ClampCameraCoordinate(focus.y - forward.y * distance, camera.focusY);
+            camera.positionZ = ClampCameraCoordinate(focus.z - forward.z * distance, camera.centerZ);
         }
 
         void OffsetCameraAndFocus(EditorSceneViewCamera& camera, Vec3f offset)
