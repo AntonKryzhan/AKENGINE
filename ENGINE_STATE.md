@@ -1,6 +1,6 @@
 # AK Engine State
 
-Last updated by Codex patch: post-v10.8 architecture/state sync after latest five one-file editorui interaction, Scene View camera, and panel search hardening commits.
+Last updated by Codex patch: post-v10.8 architecture/state sync after latest five one-file Scene View camera-coordinate/navigation and panel-model diagnostics commits.
 
 ## Current repository baseline
 
@@ -11,7 +11,7 @@ Last updated by Codex patch: post-v10.8 architecture/state sync after latest fiv
 - Alternate local generator: Ninja with MSVC environment
 - Language target: C++20/23 style, current CMake requires `cxx_std_20`
 - Current project version in `CMakeLists.txt`: `10.8.0`
-- Latest functional patch present in this archive: post-v10.8 one-file editorui interaction revision-churn, command-palette selection wrapping, Scene View camera/mode input, and panel asset-search hardening patches after `v10.8 - Inspector Component Editing Expansion`
+- Latest functional patch present in this archive: post-v10.8 one-file editorui Scene View camera-coordinate/navigation no-op hardening and panel-model validation diagnostics patches after `v10.8 - Inspector Component Editing Expansion`
 
 ## Primary build commands
 
@@ -102,7 +102,7 @@ Recently completed editor runtime layers:
 - v10.6 Scene View camera navigation and picking hardening.
 - v10.7 Scene View overlay and orientation widget runtime foundation.
 - v10.8 Inspector component editing expansion.
-- Post-v10.8 one-file hardening: Inspector property editing validation/live-preview/cancel correctness, command-palette property edit rejection, selection no-op/large-delta handling, hierarchy/asset selection Inspector revision propagation, Scene View camera sanitizer/mode/focus coordinate robustness, Asset Browser selection/inspector/search synchronization, and editor scroll clipping/range/thumb/wheel overflow robustness.
+- Post-v10.8 one-file hardening: Inspector property editing validation/live-preview/cancel correctness, command-palette property edit rejection, selection no-op/large-delta handling, hierarchy/asset selection Inspector revision propagation, Scene View camera sanitizer/mode/focus coordinate/navigation robustness, Asset Browser selection/inspector/search synchronization, panel-model validation diagnostics, and editor scroll clipping/range/thumb/wheel overflow robustness.
 
 Current Scene View behavior direction:
 
@@ -124,10 +124,13 @@ Current Inspector runtime direction:
 - Recent Scene View focus placement hardening now clamps camera focus and derived camera position coordinates through the same camera-coordinate bounds used by sanitizer paths.
 - Recent Scene View navigation hardening now suppresses no-op focus/2D zoom change reporting, ignores 2D zoom input when the viewport is unusable, and keeps orthographic ray origins inside the camera coordinate policy.
 - Recent Scene View focus/frame hardening now rejects non-finite and out-of-camera-range bounds/focus coordinates instead of accepting every finite value.
+- Recent Scene View ray/navigation hardening now clamps orthographic ray origins, 2D pan/zoom centers, 3D pan focus/position offsets, and dolly positions through the camera-coordinate policy.
+- Recent Scene View navigation revision hardening now reports pan/orbit/dolly changes only when the navigation pose actually changes after clamping.
 - Recent Scene View overlay hardening now uses saturating coordinate offsets for toolbar/orientation controls near extreme viewport coordinates.
 - Recent Asset Browser interaction hardening now normalizes `asset:` stable IDs before lookup and rejects empty asset IDs/empty item GUIDs.
 - Recent Asset Browser search hardening now skips assets with empty GUIDs when building panel search records.
 - Recent Asset Browser selection hardening now refreshes Inspector selection state when an asset is selected.
+- Recent panel-model validation hardening now fails diagnostics for empty or duplicate property paths and invalid Asset Browser selected indexes.
 - Recent hierarchy and Asset Browser selection hardening now increments Inspector panel revision when selection state is refreshed for selected scene entities or assets, while suppressing hierarchy/asset model revisions when the selected flags/index do not change.
 - Recent command-palette property edit hardening now reports rejected setting/property edit results instead of marking the model dirty for missing or read-only properties.
 - Recent command-palette selection hardening now suppresses palette/model revisions when moving selection by a zero-result delta or large wrapped delta keeps the same selected result.
@@ -140,7 +143,7 @@ This archive may contain `.akcache/` and `build/` directories. Treat them as loc
 
 ## Latest patch summary
 
-Patch: `post-v10.8 - architecture/state sync after latest five one-file editorui interaction, Scene View camera, and panel search hardening commits`.
+Patch: `post-v10.8 - architecture/state sync after latest five one-file Scene View camera-coordinate/navigation and panel-model diagnostics commits`.
 
 Changed files:
 
@@ -151,7 +154,7 @@ ENGINE_STATE.md
 Intent:
 
 ```text
-Synchronize the repository state file with the latest five one-file editorui interaction revision-churn, command-palette movement, Scene View camera/mode input, and panel asset-search hardening commits without changing production code, CMake, docs, probes, tests, generated output, or zip artifacts.
+Synchronize the repository state file with the latest five one-file Scene View camera-coordinate/navigation no-op hardening and panel-model diagnostics commits without changing production code, CMake, docs, probes, tests, generated output, or zip artifacts.
 Record the changed subsystems, risks, intentionally skipped docs/probes, and next small patch candidates.
 ```
 
@@ -167,20 +170,20 @@ Verification result:
 ```text
 AGENTS.md -> read
 ENGINE_STATE.md -> read
-ENGINE_ROADMAP.md -> read
 QUALITY_GATE.md -> read
-tasks/NEXT_PATCH.md -> read
+ENGINE_ROADMAP.md -> intentionally skipped by operator constraint: architecture sync only, use git history first, review only last five commits
+tasks/NEXT_PATCH.md -> intentionally skipped by operator constraint: architecture sync only, use git history first, review only last five commits
 nearby docs and CMake context reads -> intentionally skipped by operator constraint: architecture sync only, use git history first, review only last five commits, no docs/CMake work
 git status --short -> clean before patch
-git log --oneline -5 -> reviewed f2430c1, f6d75b6, c3bc6fa, 3e075e5, 4a70769
+git log --oneline -5 -> reviewed 067aebd, a472f1f, 1167852, d1189a4, 5509d52
 git show --stat --oneline -5 -> reviewed; all five commits were one-file editorui implementation patches
-git show --format=fuller --name-status -5 -> reviewed; three commit subjects were generic `Patch:`, one named editor interaction revision-churn hardening, one named Scene View mode input hardening
-git show --stat --patch --unified=80 f2430c1 -- engine/editorui/src/EditorInteraction.cpp -> reviewed
-git show --stat --patch --unified=80 f6d75b6 -- engine/editorui/src/EditorSceneView.cpp -> reviewed
-git show --stat --patch --unified=80 c3bc6fa -- engine/editorui/src/EditorInteraction.cpp -> reviewed
-git show --stat --patch --unified=80 3e075e5 -- engine/editorui/src/EditorPanelModels.cpp -> reviewed
-git show --stat --patch --unified=80 4a70769 -- engine/editorui/src/EditorSceneView.cpp -> reviewed
-git diff --stat -> ENGINE_STATE.md only, 1 file changed
+git show --name-only --format="%h %s%n%b" -5 -> reviewed; all five commit subjects were generic `Patch:`
+git show --stat --patch --unified=80 067aebd -- engine/editorui/src/EditorPanelModels.cpp -> reviewed
+git show --stat --patch --unified=80 a472f1f -- engine/editorui/src/EditorSceneView.cpp -> reviewed
+git show --stat --patch --unified=80 1167852 -- engine/editorui/src/EditorSceneView.cpp -> reviewed
+git show --stat --patch --unified=80 d1189a4 -- engine/editorui/src/EditorPanelModels.cpp -> reviewed
+git show --stat --patch --unified=80 5509d52 -- engine/editorui/src/EditorSceneView.cpp -> reviewed
+git diff --stat -> ENGINE_STATE.md only, 1 file changed, 33 insertions, 31 deletions
 git diff --check -> passed; Git warned that LF will be replaced by CRLF the next time Git touches ENGINE_STATE.md
 git status --short after patch -> `M ENGINE_STATE.md` only
 cmake configure/build -> intentionally skipped by operator constraint: architecture sync only, edit only ENGINE_STATE.md, no code
@@ -194,10 +197,10 @@ Next recommended step:
 ```text
 Prefer one more narrow editorui verification or behavior patch before a broader feature if verification finds gaps.
 Best one-file candidates:
-1. EditorInteraction.cpp: verify whether repeated selection of the already-selected hierarchy or asset item should still enqueue non-undoable selection requests and modelDirty results after revision-churn reductions.
-2. EditorInteraction.cpp: harden command-palette accept/close behavior for entity, asset, panel, and property results so failed/no-op accepts do not close the palette or create stale dirty/layout signals.
-3. EditorSceneView.cpp: verify invalid enum handling for projection/tool/space style state mirrors the new camera-mode and requested-mode sanitizer patterns.
-4. EditorSceneView.cpp: add one-file focus/frame edge hardening if any remaining path can offset sanitized camera coordinates back outside `MaxCameraCoordinate`.
+1. EditorSceneView.cpp: verify whether focus/frame/snap axis paths should suppress revisions when sanitized inputs leave the camera pose unchanged.
+2. EditorSceneView.cpp: harden remaining enum-backed overlay/tool/space inputs to mirror the camera-mode/requested-mode sanitizer pattern.
+3. EditorPanelModels.cpp: verify whether panel diagnostics should expose named failure reasons for invalid selected indexes, duplicate property paths, and empty property paths instead of only `ok=false`.
+4. EditorPanelModels.cpp: harden Asset Browser selected-index normalization at model construction/update boundaries if any caller can persist an out-of-range index.
 5. Otherwise continue with v10.9 - Asset Browser thumbnails and import status model, but only as a normal feature patch with docs/probes/CMake policy restored.
 ```
 
@@ -206,29 +209,28 @@ Best one-file candidates:
 Reviewed commits:
 
 ```text
-f2430c1 Patch: Command-palette selection large-delta wrapping
-f6d75b6 Patch: Scene View focus/camera coordinate clamping
-c3bc6fa Patch: editor interaction revision-churn hardening.
-3e075e5 Patch: Panel search skips empty asset GUID records
-4a70769 Patch: Scene View mode input hardening.
+067aebd Patch: Panel-model asset selection diagnostics
+a472f1f Patch: Scene View navigation pose no-op suppression
+1167852 Patch: Scene View navigation coordinate clamping
+d1189a4 Patch: Panel-model property path diagnostics
+5509d52 Patch: Scene View orthographic ray origin clamping
 ```
 
 Changed subsystems:
 
 ```text
-engine/editorui Editor interaction selection propagation, hierarchy/asset model revision suppression, Inspector panel revision updates, and command-palette selected-result movement state
-engine/editorui Scene View camera mode input, sanitizer projection contract, focus coordinate clamping, and derived camera position bounds
-engine/editorui Panel model search index generation for Asset Browser records with valid GUIDs only
+engine/editorui Scene View orthographic ray construction, 2D pan/zoom, 3D pan/orbit/dolly navigation, camera-coordinate clamping, and navigation revision reporting
+engine/editorui Panel model diagnostics for property path uniqueness/emptiness, Asset Browser selected-index validity, and diagnostic summary output
 ```
 
 Architectural risks noticed:
 
 ```text
 The last five patches were implementation-only and one-file, so docs/probe coverage is intentionally skipped in this sync until the operator lifts the no-docs/no-probes/no-tests constraint.
-Command-palette selection movement now reduces large deltas modulo result count and returns false when the effective selection is unchanged; callers that treated any move input as a palette revision should key off the boolean result.
-Hierarchy and asset selection now suppress hierarchy/asset model revision churn when the visible selected flags/index are unchanged, but selection requests are still queued for valid repeated selections; callers should continue checking undoable/stable selection state.
-Scene View mode input and camera placement paths now clamp invalid modes and extreme coordinates, but adjacent enum-backed state and camera offset paths may still need matching defensive patterns if external or serialized inputs can corrupt them.
-Panel search now skips empty asset GUID records; this avoids unusable `asset:` search IDs but means assets without GUIDs are intentionally absent from command-palette asset results until the asset model can supply a stable GUID.
+Scene View navigation now suppresses revision/status updates when clamping makes pan/orbit/dolly pose unchanged; any callers that treated input activity as a guaranteed changed result should rely on the returned `changed` flag.
+Scene View camera-coordinate policy now covers more ray/navigation paths, but focus/frame/snap-axis paths still merit a one-file no-op/revision review for consistency.
+Panel-model diagnostics now fail on empty/duplicate property paths and invalid asset selected indexes, but diagnostics still expose only aggregate counts plus a summary string; named failure reasons would make probe output more actionable.
+Asset Browser selected-index validity is now checked during diagnostics, but a separate normalization boundary may still be needed if runtime callers can retain an out-of-range selected index.
 Docs, probes, tests, production code, CMake, and zip artifacts are intentionally skipped by operator instruction for this architecture sync.
 ```
 
