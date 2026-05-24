@@ -246,7 +246,7 @@ namespace AK
         {
             nextOffset = itemTop;
         }
-        else if (itemBottom > nextOffset + state.viewportPixels)
+        else if (itemBottom > SaturatingRectEnd(nextOffset, state.viewportPixels))
         {
             nextOffset = itemBottom - state.viewportPixels;
         }
